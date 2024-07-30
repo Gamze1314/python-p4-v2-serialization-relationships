@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from sqlalchemy_serializer import SerializerMixin
 
+#this convention is used to follow consistent naming conventions. reduces the amount of manual effort required.runs SQL statements automatically/dynamically.
 convention = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
@@ -17,8 +18,11 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(metadata=metadata)
 
 
-class Zookeeper(db.Model):
+class Zookeeper(db.Model, SerializerMixin):
     __tablename__ = 'zookeepers'
+
+    #use serialize_rules class attribute to set the limit on the recursion depth.
+    seialize_rules = ('-animals.zookeper',)
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
@@ -27,8 +31,11 @@ class Zookeeper(db.Model):
     animals = db.relationship('Animal', back_populates='zookeeper')
 
 
-class Enclosure(db.Model):
+class Enclosure(db.Model, SerializerMixin):
     __tablename__ = 'enclosures'
+
+    #set tules on serialization
+    serialize_rules = ('-animals.enclosure',)
 
     id = db.Column(db.Integer, primary_key=True)
     environment = db.Column(db.String)
@@ -37,8 +44,11 @@ class Enclosure(db.Model):
     animals = db.relationship('Animal', back_populates='enclosure')
 
 
-class Animal(db.Model):
+class Animal(db.Model, SerializerMixin):
     __tablename__ = 'animals'
+
+    #serialization rule
+    serialize_rules = ('-zookeeper.animals', '-enclosure.animals')
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String, unique=True)
